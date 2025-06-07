@@ -73,15 +73,8 @@ export async function deleteLesson(id) {
     throw new Error("Invalid Lesson Id");
   }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("DELETE FROM lessons WHERE id = $1", [id]);
-      if (result.rowCount === 0) {
-        return false;
-      }
-      return true;
-    } else {
-      throw new Error("Invalid Lesson Id");
-    }
+    const result = await query("DELETE FROM lessons WHERE id = $1", [id]);
+    return result.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;
@@ -111,15 +104,11 @@ export async function getLessonById(id) {
     throw new Error("Invalid Lesson Id");
   }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("SELECT * FROM lessons WHERE id = $1", [id]);
-      if (result.rows.length !== 0) {
-        return result.rows[0];
-      }
-      return null;
-    } else {
-      throw new Error("Invalid Lesson Id");
+    const result = await query("SELECT * FROM lessons WHERE id = $1", [id]);
+    if (result.rows.length !== 0) {
+      return result.rows[0];
     }
+    return null;
   } catch (err) {
     console.error(err);
     throw err;

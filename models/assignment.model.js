@@ -63,13 +63,12 @@ export async function updateAssignment(assignmentInfo) {
 
 // Delete assignment
 export async function deleteAssignment(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Assignment Id");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("DELETE FROM assignments WHERE id = $1", [id]);
-      return result.rowCount > 0;
-    } else {
-      throw new Error("Invalid Assignment Id");
-    }
+    const result = await query("DELETE FROM assignments WHERE id = $1", [id]);
+    return result.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;
@@ -95,18 +94,12 @@ export async function getAssignmentsByLesson(lesson_id) {
 
 // Get assignment by id
 export async function getAssignmentById(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Assignment Id");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("SELECT * FROM assignments WHERE id = $1", [
-        id,
-      ]);
-      if (result.rows.length !== 0) {
-        return result.rows[0];
-      }
-      return null;
-    } else {
-      throw new Error("Invalid Assignment Id");
-    }
+    const result = await query("SELECT * FROM assignments WHERE id = $1", [id]);
+    return result.rows[0];
   } catch (err) {
     console.error(err);
     throw err;

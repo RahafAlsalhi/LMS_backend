@@ -1,16 +1,13 @@
 import * as CategoryModel from "../models/category.model.js";
-import { createResponse } from "../utils/createResponse.js";
+import { createResponse } from "../utils/helper.js";
 
 // Create category
 export async function createCategory(req, res) {
+  const { name } = req.body;
+  if (!name || typeof name !== "string") {
+    return res.status(400).json(createResponse(false, "Invalid category name"));
+  }
   try {
-    const { name } = req.body;
-    if (!name || typeof name !== "string") {
-      return res
-        .status(400)
-        .json(createResponse(false, "Invalid category name"));
-    }
-
     const category = await CategoryModel.createCategory(name);
     if (category) {
       return res
@@ -23,7 +20,7 @@ export async function createCategory(req, res) {
   } catch (err) {
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, " Server error", null, err.message));
   }
 }
 

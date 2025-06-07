@@ -1,5 +1,5 @@
 import * as QuizModel from "../models/quiz.model.js";
-import { createResponse } from "../utils/createResponse.js";
+import { createResponse } from "../utils/helper.js";
 
 // Create quiz
 export async function createQuiz(req, res) {

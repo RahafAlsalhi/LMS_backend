@@ -57,12 +57,8 @@ export async function deleteSubmission(id) {
     throw new Error("Invalid submission ID");
   }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("DELETE FROM submissions WHERE id = $1", [id]);
-      return result.rowCount > 0;
-    } else {
-      throw new Error("Invalid Submission Id");
-    }
+    const result = await query("DELETE FROM submissions WHERE id = $1", [id]);
+    return result.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;
@@ -109,7 +105,7 @@ export async function getSubmissionById(id) {
       }
       return null;
     } else {
-      throw new Error("Invalid Submission Id");
+      throw new Error("Invalid submission ID");
     }
   } catch (err) {
     console.error(err);

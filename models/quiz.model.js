@@ -63,13 +63,12 @@ export async function updateQuiz(quizInfo) {
 
 // Delete quiz
 export async function deleteQuiz(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid quiz ID");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("DELETE FROM quizzes WHERE id = $1", [id]);
-      return result.rowCount > 0;
-    } else {
-      throw new Error("Invalid Quiz Id");
-    }
+    const result = await query("DELETE FROM quizzes WHERE id = $1", [id]);
+    return result.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;
