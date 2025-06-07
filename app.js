@@ -18,6 +18,7 @@ import lessonRouter from "./routes/lesson.route.js";
 import moduleRouter from "./routes/module.route.js";
 import quizRouter from "./routes/quiz.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
+import submissionRouter from "./routes/submission.route.js";
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use("/api/lessons", lessonRouter);
 app.use("/api/modules", moduleRouter);
 app.use("/api/quizzes", quizRouter);
 app.use("/api/assignments", assignmentRouter);
+app.use("/api/submissions", submissionRouter);
 // 4. Health and root endpoints
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
