@@ -52,16 +52,12 @@ export async function updateCourse(courseInfo) {
 
 //delete course:
 export async function deleteCourse(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Course Id");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const result = await query("DELETE FROM courses WHERE id = $1", [id]);
-      if (result.rowCount === 0) {
-        return false;
-      }
-      return true;
-    } else {
-      throw new Error("Invalid Course Id");
-    }
+    const result = await query("DELETE FROM courses WHERE id = $1", [id]);
+    return result.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;
@@ -83,16 +79,12 @@ export async function getAllCourses() {
 
 //get course by Id
 export async function getCourseById(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Course Id");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const course = await query("SELECT * FROM courses where id = $1", [id]);
-      if (course.rows.length !== 0) {
-        return course.rows[0];
-      }
-      return null;
-    } else {
-      throw new Error("Invalid Cours Id");
-    }
+    const course = await query("SELECT * FROM courses where id = $1", [id]);
+    return course.rows[0];
   } catch (err) {
     console.error(err);
     throw err;

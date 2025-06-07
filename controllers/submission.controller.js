@@ -1,5 +1,5 @@
 import * as SubmissionModel from "../models/submission.model.js";
-import { createResponse } from "../utils/createResponse.js";
+import { createResponse } from "../utils/helper.js";
 
 // Create submission
 export async function createSubmission(req, res) {

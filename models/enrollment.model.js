@@ -61,7 +61,7 @@ export async function getUserEnrollments(user_id) {
       );
       return userCourses.rows;
     }
-    return false;
+    return [];
   } catch (err) {
     console.error(err);
     throw err;

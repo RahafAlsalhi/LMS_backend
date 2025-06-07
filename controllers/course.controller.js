@@ -23,7 +23,7 @@ export async function createCourse(req, res) {
 export async function updateCourse(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(400).json(createResponse(false, "Invalid course ID."));
+    return res.status(400).json(createResponse(false, " Invalid course ID."));
   }
   try {
     const course = await CourseModel.updateCourse({
@@ -84,7 +84,7 @@ export async function getAllCourses(req, res) {
 export async function getCourseById(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(400).json(createResponse(false, "Invalid course ID"));
+    return res.status(400).json(createResponse(false, " Invalid course ID"));
   }
   try {
     const course = await CourseModel.getCourseById(id);

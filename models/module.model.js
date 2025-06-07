@@ -57,18 +57,14 @@ export async function updateModule(moduleInfo) {
 
 // Delete module
 export async function deleteModule(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Module Id");
+  }
   try {
-    if (Number.isInteger(id)) {
-      const deletedModules = await query("DELETE FROM modules WHERE id = $1", [
-        id,
-      ]);
-      if (deletedModules.rowCount === 0) {
-        return false;
-      }
-      return true;
-    } else {
-      throw new Error("Invalid Module Id");
-    }
+    const deletedModules = await query("DELETE FROM modules WHERE id = $1", [
+      id,
+    ]);
+    return deletedModules.rowCount > 0;
   } catch (err) {
     console.error(err);
     throw err;

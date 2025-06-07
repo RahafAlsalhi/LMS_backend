@@ -1,8 +1,7 @@
 import { query } from "../config/db.js";
 import bcrypt from "bcryptjs";
 
-//users
-//1- create user
+// 1- create user
 export async function createUser(userInfo) {
   try {
     let hashedPassword = null;
@@ -31,25 +30,28 @@ export async function createUser(userInfo) {
     return null;
   } catch (err) {
     if (err.code === "23505") {
-      throw new Error("Error already exist");
+      throw new Error("User already exists");
     }
     throw err;
   }
 }
 
-//update User
+// 2- update User
 export async function updateUser(userInfo) {
   try {
-    const hashedPassword = await bcrypt.hash(
-      userInfo.password,
-      Number(process.env.BCRYPT_SALT_ROUNDS)
-    );
+    let hashedPassword = null;
+    if (userInfo.password) {
+      hashedPassword = await bcrypt.hash(
+        userInfo.password,
+        Number(process.env.BCRYPT_SALT_ROUNDS)
+      );
+    }
     const result = await query(
       `UPDATE users 
        SET name = $1, 
            email = $2, 
-           password_hash = $3, 
-           role = $4
+           password_hash = COALESCE($3, password_hash), 
+           role = $4,
            avatar = $5
        WHERE id = $6
        RETURNING *`,
@@ -72,7 +74,7 @@ export async function updateUser(userInfo) {
   }
 }
 
-//3- delete user
+// 3- delete user
 export async function deleteUser(id) {
   try {
     if (Number.isInteger(id)) {
@@ -90,7 +92,7 @@ export async function deleteUser(id) {
   }
 }
 
-// 4- get all users(for admin only)
+// 4- get all users (for admin only)
 export async function getAllUsers() {
   try {
     const allUsers = await query(
@@ -103,12 +105,12 @@ export async function getAllUsers() {
   }
 }
 
-//5- get user by id.
+// 5- get user by id
 export async function getUserById(id) {
   try {
     if (Number.isInteger(id)) {
       const result = await query(
-        "SELECT email, name, role, is_active, avatar FROM users WHERE id = $1",
+        "SELECT id, email, name, role, is_active, avatar, password_hash FROM users WHERE id = $1",
         [id]
       );
       if (!result.rows[0]) {
@@ -124,18 +126,21 @@ export async function getUserById(id) {
   }
 }
 
+// 6- get user by email
 export async function getUserByEmail(email) {
   try {
     const result = await query(
-      "SELECT id, email, name, role, is_active, avatar FROM users WHERE email = $1",
+      "SELECT id, email, name, role, is_active, avatar, password_hash FROM users WHERE email = $1",
       [email]
     );
     return result.rows[0] || null;
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     throw err;
   }
 }
+
+// 7- change user password
 export async function changeUserPassword({ user_id, newPassword }) {
   try {
     const hashedPassword = await bcrypt.hash(
@@ -153,10 +158,11 @@ export async function changeUserPassword({ user_id, newPassword }) {
   }
 }
 
+// 8- get user by Google OAuth id
 export async function getUserbyGoogleId(id) {
   try {
     const googleId = await query(
-      "SELECT email,oauth_id, name, role, avatar FROM users WHERE oauth_id = $1",
+      "SELECT id, email, oauth_id, name, role, avatar FROM users WHERE oauth_id = $1",
       [id]
     );
     if (!googleId.rows[0]) {
