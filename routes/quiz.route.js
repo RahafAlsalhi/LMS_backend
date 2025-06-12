@@ -1,7 +1,7 @@
 import express from "express";
 import * as quizController from "../controllers/quiz.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+import { requireInstructorOrAdmin } from "../middleware/authorize.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { quizSchema } from "../validation/quiz.Schema.js";
 
@@ -11,7 +11,7 @@ const router = express.Router();
 router.post(
   "/create",
   authenticateJWT,
-    requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   validateBody(quizSchema),
   quizController.createQuiz
 );
@@ -20,7 +20,7 @@ router.post(
 router.put(
   "/update/:id",
   authenticateJWT,
- requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   validateBody(quizSchema),
   quizController.updateQuiz
 );
@@ -29,7 +29,7 @@ router.put(
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   quizController.deleteQuiz
 );
 

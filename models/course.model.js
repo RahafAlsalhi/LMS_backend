@@ -5,19 +5,18 @@ export async function createCourse(courseInfo) {
   try {
     const result = await query(
       `INSERT INTO courses 
-    (title, description, thumbnail_url, instructor_id) 
-   VALUES ($1, $2, $3, $4) RETURNING *`,
+       (title, description, thumbnail_url, instructor_id, category_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [
         courseInfo.title,
         courseInfo.description,
         courseInfo.thumbnail_url,
-        courseInfo.instructor_id, // <---- for now to prevent errors !
+        courseInfo.instructor_id,
+        courseInfo.category_id,
       ]
     );
-    if (result.rows[0]) {
-      return result.rows[0];
-    }
-    return null;
+
+    return result.rows[0] || null;
   } catch (err) {
     console.error(err);
     throw err;
@@ -30,13 +29,15 @@ export async function updateCourse(courseInfo) {
       `UPDATE courses
        SET title = $1,
             description=$2,
-            thumbnail_url=$3
-            where id = $4
+            thumbnail_url=$3,
+            category_id=$4
+            where id = $5
             RETURNING *`,
       [
         courseInfo.title,
         courseInfo.description,
         courseInfo.thumbnail_url,
+        courseInfo.category_id,
         courseInfo.id,
       ]
     );

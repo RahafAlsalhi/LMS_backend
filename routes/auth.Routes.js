@@ -7,7 +7,7 @@ import {
   googleAuth,
   googleCallBack,
   refreshToken,
-  getCurrentUserInfo,
+  getCurrentLogInInfo,
   logout,
   Login,
   Register,
@@ -21,11 +21,14 @@ authRouter.post("/login", validateBody(loginSchema), Login);
 authRouter.post("/refresh-token", refreshToken);
 
 // Current user info & logout
-authRouter.get("/me", authenticateJWT, getCurrentUserInfo); //not working
+authRouter.get("/me", authenticateJWT, getCurrentLogInInfo);
 authRouter.get("/logout", authenticateJWT, logout);
 
 // Google OAuth
 authRouter.get("/google", googleAuth);
-authRouter.get("/google/callback", googleCallBack);
-
+// In your auth routes
+authRouter.get("/google/callback", googleCallBack, (req, res) => {
+  // After successful OAuth, redirect to frontend
+  res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?success=true`);
+});
 export default authRouter;

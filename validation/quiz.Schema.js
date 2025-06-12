@@ -5,7 +5,7 @@ export const quizSchema = Joi.object({
     "number.base": "Lesson ID must be a number.",
     "any.required": "Lesson ID is required.",
   }),
-  question: Joi.string().min(5).max(1000).required().messages({
+  question: Joi.string().trim().min(5).max(1000).required().messages({
     "string.base": "Question must be a string.",
     "string.empty": "Question is required.",
     "string.min": "Question must be at least 5 characters.",
@@ -21,7 +21,7 @@ export const quizSchema = Joi.object({
       "array.min": "At least two options are required.",
       "any.required": "Options are required.",
     }),
-  correct_answer: Joi.string().min(1).max(255).required().messages({
+  correct_answer: Joi.string().trim().min(1).max(255).required().messages({
     "string.base": "Correct answer must be a string.",
     "string.empty": "Correct answer is required.",
     "any.required": "Correct answer is required.",

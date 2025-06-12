@@ -1,7 +1,11 @@
 import express from "express";
 import * as submissionController from "../controllers/submission.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+import {
+  requireStudent,
+  requireInstructor,
+  requireInstructorOrAdmin,
+} from "../middleware/authorize.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { submissionSchema } from "../validation/submission.Schema.js";
 
@@ -11,7 +15,7 @@ const router = express.Router();
 router.post(
   "/create",
   authenticateJWT,
-  requireRole("student"),
+  requireStudent,
   validateBody(submissionSchema),
   submissionController.createSubmission
 );
@@ -20,7 +24,7 @@ router.post(
 router.put(
   "/edit/:id",
   authenticateJWT,
-  requireRole("student"),
+  requireStudent,
   validateBody(submissionSchema),
   submissionController.updateSubmission
 );
@@ -29,7 +33,7 @@ router.put(
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  requireRole("student"),
+  requireStudent,
   submissionController.deleteSubmission
 );
 
@@ -40,7 +44,7 @@ router.get("/:id", authenticateJWT, submissionController.getSubmissionById);
 router.get(
   "/assignment/:assignment_id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   submissionController.getSubmissionsByAssignment
 );
 
@@ -48,7 +52,7 @@ router.get(
 router.get(
   "/user/:user_id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   submissionController.getSubmissionsByUser
 );
 
@@ -56,7 +60,7 @@ router.get(
 router.get(
   "/user/:user_id/assignment/:assignment_id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   submissionController.getSubmissionsByUserAndAssignment
 );
 
@@ -64,7 +68,7 @@ router.get(
 router.get(
   "/user/:user_id/instructor/:instructor_id",
   authenticateJWT,
-  requireRole("instructor"),
+  requireInstructor,
   submissionController.getUserSubmissionsForInstructor
 );
 
@@ -72,7 +76,7 @@ router.get(
 router.get(
   "/assignment/:assignment_id/all",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   submissionController.getAllSubmissionsForAssignment
 );
 

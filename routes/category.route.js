@@ -1,31 +1,29 @@
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
-
+import { requireAdmin } from "../middleware/authorize.js";
 const router = express.Router();
-
-// Create category (protected)
+// Create category (admin only)
 router.post(
   "/create",
   authenticateJWT,
-  requireRole("admin"),
+  requireAdmin,
   categoryController.createCategory
 );
 
-// Update category (protected)
+// Update category (admin only)
 router.put(
   "/edit/:id",
   authenticateJWT,
-  requireRole("admin"),
+  requireAdmin,
   categoryController.updateCategory
 );
 
-// Delete category (protected)
+// Delete category (admin only)
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  requireRole("admin"),
+  requireAdmin,
   categoryController.deleteCategory
 );
 

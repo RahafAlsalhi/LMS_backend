@@ -5,6 +5,7 @@ export const lessonSchema = Joi.object({
     .pattern(/^[a-zA-Z0-9\s.,!?()'"-]+$/)
     .min(3)
     .max(100)
+    .trim()
     .required()
     .messages({
       "string.pattern.base":
