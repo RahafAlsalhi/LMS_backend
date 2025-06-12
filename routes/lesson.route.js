@@ -1,7 +1,7 @@
 import express from "express";
 import * as lessonController from "../controllers/lesson.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+import { requireInstructorOrAdmin } from "../middleware/authorize.js";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.post(
   "/create",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   lessonController.createLesson
 );
 
@@ -17,7 +17,7 @@ router.post(
 router.put(
   "/update/:id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   lessonController.updateLesson
 );
 
@@ -25,7 +25,7 @@ router.put(
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   lessonController.deleteLesson
 );
 

@@ -12,7 +12,7 @@ export async function createUser(userInfo) {
       );
     }
     const result = await query(
-      "INSERT INTO users (name, email, password_hash, role, avatar, oauth_provider, oauth_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      "INSERT INTO users (name, email, password_hash, role, avatar_url, oauth_provider, oauth_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [
         userInfo.name,
         userInfo.email,
@@ -48,19 +48,20 @@ export async function updateUser(userInfo) {
     }
     const result = await query(
       `UPDATE users 
-       SET name = $1, 
-           email = $2, 
-           password_hash = COALESCE($3, password_hash), 
-           role = $4,
-           avatar = $5
-       WHERE id = $6
-       RETURNING *`,
+SET name = COALESCE($1, name),
+    email = COALESCE($2, email),
+    password_hash = COALESCE($3, password_hash),
+    role = $4,
+    avatar_url = COALESCE($5, avatar_url),
+    updated_at = NOW()
+WHERE id = $6
+RETURNING *`,
       [
         userInfo.name,
         userInfo.email,
         hashedPassword,
         userInfo.role,
-        userInfo.avatar || null,
+        userInfo.avatar_url || null,
         userInfo.id,
       ]
     );
@@ -96,7 +97,7 @@ export async function deleteUser(id) {
 export async function getAllUsers() {
   try {
     const allUsers = await query(
-      "SELECT id, email, name, role, is_active, avatar FROM users"
+      "SELECT  email, name, role, is_active, avatar_url FROM users"
     );
     return allUsers.rows;
   } catch (err) {
@@ -110,7 +111,7 @@ export async function getUserById(id) {
   try {
     if (Number.isInteger(id)) {
       const result = await query(
-        "SELECT id, email, name, role, is_active, avatar, password_hash FROM users WHERE id = $1",
+        "SELECT id, email, name, role, is_active, avatar_url, password_hash FROM users WHERE id = $1",
         [id]
       );
       if (!result.rows[0]) {
@@ -130,7 +131,7 @@ export async function getUserById(id) {
 export async function getUserByEmail(email) {
   try {
     const result = await query(
-      "SELECT id, email, name, role, is_active, avatar, password_hash FROM users WHERE email = $1",
+      "SELECT id, email, name, role, is_active, avatar_url, password_hash FROM users WHERE email = $1",
       [email]
     );
     return result.rows[0] || null;
@@ -161,16 +162,13 @@ export async function changeUserPassword({ user_id, newPassword }) {
 // 8- get user by Google OAuth id
 export async function getUserbyGoogleId(id) {
   try {
-    const googleId = await query(
-      "SELECT id, email, oauth_id, name, role, avatar FROM users WHERE oauth_id = $1",
+    const result = await query(
+      "SELECT id, email, oauth_id, name, role, avatar_url, is_active FROM users WHERE oauth_id = $1",
       [id]
     );
-    if (!googleId.rows[0]) {
-      return null;
-    }
-    return googleId.rows[0];
+    return result.rows[0] || null;
   } catch (err) {
-    console.error(err.message);
+    console.error("Get user by Google ID error:", err.message);
     throw err;
   }
 }

@@ -4,33 +4,32 @@ import { validateBody } from "../middleware/validateBody.js";
 import { validateQuery } from "../middleware/validateQuery.js";
 import { authenticateJWT } from "../middleware/auth.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
-import { requireRole } from "../middleware/role.js";
+import { requireInstructorOrAdmin } from "../middleware/authorize.js";
 import * as courseController from "../controllers/course.controller.js";
 const router = express.Router();
-
-// Create a new course (protected)
+// Create a new course (instructor or admin only)
 router.post(
   "/create",
   authenticateJWT,
-  requireRole("instructor", "admin"),
+  requireInstructorOrAdmin,
   validateBody(CourseSchema),
   courseController.createCourse
 );
 
-// Update a course (protected)
+// Update a course (instructor or admin only)
 router.put(
   "/edit/:id",
   authenticateJWT,
-  requireRole("instructor", "admin"),
+  requireInstructorOrAdmin,
   validateBody(CourseSchema),
   courseController.updateCourse
 );
 
-// Delete a course (protected)
+// Delete a course (instructor or admin only)
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  // requireRole("instructor", "admin"),
+  requireInstructorOrAdmin,
   courseController.deleteCourse
 );
 
@@ -43,6 +42,7 @@ router.get(
   validateQuery(CourseSearchSchema),
   courseController.searchCourses
 );
+
 // Get course by ID (public)
 router.get("/get/:id", courseController.getCourseById);
 

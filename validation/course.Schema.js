@@ -5,20 +5,21 @@ export const CourseSchema = Joi.object({
     .pattern(/^[a-zA-Z0-9\s.,!?()'"-]+$/)
     .min(3)
     .max(100)
-    .required()
-    .messages({
-      "string.pattern.base":
-        "Title can only contain letters, numbers, and basic punctuation.",
-    }),
-  description: Joi.string().min(10).max(500).required().messages({
-    "string.min": "Description should be at least 10 characters.",
-  }),
-  thumbnail_url: Joi.string().uri().required().messages({
-    "string.uri": "Thumbnail URL must be a valid URL.",
-  }),
+    .trim()
+    .required(),
+
+  description: Joi.string().min(10).max(500).trim().required(),
+
+  thumbnail_url: Joi.string().uri().optional().allow(null, ""),
+
+  level: Joi.string().valid("beginner", "intermediate", "advanced").optional(),
+  language: Joi.string().min(2).max(10).default("en").optional(),
+  duration_hours: Joi.number().min(0).optional(),
+  category_id: Joi.number().integer().optional(),
+
   is_approved: Joi.boolean().default(false),
   is_published: Joi.boolean().default(false),
+  instructor_id: Joi.number().integer().required(),
   created_at: Joi.date().default(() => new Date()),
   updated_at: Joi.date().default(() => new Date()),
-  instructor_id: Joi.number().integer().required(), // for now
 });

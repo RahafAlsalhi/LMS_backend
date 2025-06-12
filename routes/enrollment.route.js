@@ -1,7 +1,10 @@
 import express from "express";
 import * as enrollmentController from "../controllers/enrollment.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+import {
+  requireAdmin,
+  requireInstructorOrAdmin,
+} from "../middleware/authorize.js";
 
 const router = express.Router();
 
@@ -33,11 +36,11 @@ router.get(
   enrollmentController.isUserEnrolled
 );
 
-//  Get all enrollments (admin only)
+// Get all enrollments (admin only)
 router.get(
   "/get",
   authenticateJWT,
-  requireRole("admin"),
+  requireAdmin,
   enrollmentController.getAllEnrollments
 );
 
@@ -45,7 +48,7 @@ router.get(
 router.get(
   "/get/:id",
   authenticateJWT,
-  requireRole("instructor", "admin"),
+  requireInstructorOrAdmin,
   enrollmentController.getCourseEnrollments
 );
 

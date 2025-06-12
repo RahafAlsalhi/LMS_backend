@@ -1,18 +1,33 @@
 import Joi from "joi";
 
 export const ChangePasswordSchema = Joi.object({
-  currentPassword: Joi.string().required(),
+  currentPassword: Joi.string().required().messages({
+    "any.required": "Current password is required.",
+    "string.empty": "Current password cannot be empty.",
+  }),
+
   newPassword: Joi.string()
+    .pattern(
+      new RegExp(
+        "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
+      )
+    )
     .min(8)
     .max(128)
-    .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]+$/)
     .required()
-    .invalid(Joi.ref("currentPassword"))
     .messages({
-      "string.empty": "Password is required.",
-      "string.min": "Password must be at least 8 characters.",
-      "any.invalid": "Current Password is not correct",
       "string.pattern.base":
-        "Password must contain at least one letter and one number.",
+        "New password must be at least 8 characters long, include at least one uppercase letter, one number, and one special character (!@#$%^&*).",
+      "string.min": "New password must be at least 8 characters long.",
+      "string.max": "New password should be no more than 128 characters.",
+      "any.required": "New password is required.",
+    }),
+
+  confirmPassword: Joi.string()
+    .valid(Joi.ref("newPassword"))
+    .required()
+    .messages({
+      "any.only": "Password confirmation does not match new password.",
+      "any.required": "Password confirmation is required.",
     }),
 });

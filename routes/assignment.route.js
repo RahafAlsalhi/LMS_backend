@@ -1,7 +1,10 @@
 import express from "express";
 import * as assignmentController from "../controllers/assignment.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+import {
+  requireAdmin,
+  requireInstructorOrAdmin,
+} from "../middleware/authorize.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { assignmentSchema } from "../validation/assignment.Schema.js";
 
@@ -11,7 +14,7 @@ const router = express.Router();
 router.post(
   "/create",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   validateBody(assignmentSchema),
   assignmentController.createAssignment
 );
@@ -20,7 +23,7 @@ router.post(
 router.put(
   "/edit/:id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   validateBody(assignmentSchema),
   assignmentController.updateAssignment
 );
@@ -29,7 +32,7 @@ router.put(
 router.delete(
   "/delete/:id",
   authenticateJWT,
-  requireRole("admin", "instructor"),
+  requireInstructorOrAdmin,
   assignmentController.deleteAssignment
 );
 
@@ -43,7 +46,7 @@ router.get("/get/:id", assignmentController.getAssignmentById);
 router.get(
   "/get-all",
   authenticateJWT,
-  requireRole("admin"),
+  requireAdmin,
   assignmentController.getAllAssignments
 );
 
