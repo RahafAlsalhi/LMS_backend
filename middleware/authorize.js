@@ -156,6 +156,53 @@ export const requireInstructor = (req, res, next) => {
 export const requireStudentAccess = (req, res, next) => {
   return requireRole(["student", "instructor", "admin"])(req, res, next);
 };
+// Only allow user to access their own resource (no admin bypass)
+export const requireSelfOnly = (getResourceOwnerIdFn) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res
+          .status(401)
+          .json(createResponse(false, "Authentication required"));
+      }
+
+      const resourceOwnerId = await getResourceOwnerIdFn(req);
+
+      if (!resourceOwnerId) {
+        return res
+          .status(404)
+          .json(createResponse(false, "Resource not found"));
+      }
+
+      if (req.user.id !== resourceOwnerId) {
+        return res
+          .status(403)
+          .json(
+            createResponse(
+              false,
+              "Access denied",
+              null,
+              "You can only access your own account"
+            )
+          );
+      }
+
+      next();
+    } catch (error) {
+      console.error("Self-only check error:", error);
+      return res
+        .status(500)
+        .json(
+          createResponse(
+            false,
+            "Authorization check failed",
+            null,
+            error.message
+          )
+        );
+    }
+  };
+};
 
 // Default export
 export default {
@@ -168,4 +215,5 @@ export default {
   requireStudent,
   requireInstructor,
   requireStudentAccess,
+  requireSelfOnly,
 };

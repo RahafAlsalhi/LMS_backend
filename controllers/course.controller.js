@@ -117,3 +117,77 @@ export async function searchCourses(req, res) {
       .json(createResponse(false, "Server error", null, err.message));
   }
 }
+
+// Get pending courses
+export async function getPendingCourses(req, res) {
+  try {
+    const courses = await CourseModel.getPendingCourses();
+    return res
+      .status(200)
+      .json(
+        createResponse(true, "Pending courses fetched successfully", courses)
+      );
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}
+
+// Approve course
+export async function approveCourse(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json(createResponse(false, "Invalid course ID"));
+  }
+  try {
+    const course = await CourseModel.approveCourse(id);
+    if (course) {
+      return res
+        .status(200)
+        .json(createResponse(true, "Course approved successfully", course));
+    } else {
+      return res.status(404).json(createResponse(false, "Course not found"));
+    }
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}
+
+// Reject course
+export async function rejectCourse(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json(createResponse(false, "Invalid course ID"));
+  }
+  try {
+    const course = await CourseModel.rejectCourse(id);
+    if (course) {
+      return res
+        .status(200)
+        .json(createResponse(true, "Course rejected successfully", course));
+    } else {
+      return res.status(404).json(createResponse(false, "Course not found"));
+    }
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}
+
+// Get all courses for admin
+export async function getAllCoursesAdmin(req, res) {
+  try {
+    const courses = await CourseModel.getAllCoursesAdmin();
+    return res
+      .status(200)
+      .json(createResponse(true, "Courses fetched successfully", courses));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}

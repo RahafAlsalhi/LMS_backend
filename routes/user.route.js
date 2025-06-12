@@ -4,7 +4,7 @@ import { authenticateJWT } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { UserSchema } from "../validation/user.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
-
+import { requireSelfOnly, requireAdmin } from "../middleware/authorize.js";
 const router = express.Router();
 
 // Create user (registration)
@@ -30,7 +30,7 @@ router.delete(
 );
 
 // Get all users (admin)
-router.get("/get", authenticateJWT, userController.getAllUsersController);
+router.get("/get", authenticateJWT,requireAdmin, userController.getAllUsersController);
 
 // Get user by ID
 router.get("/get/:id", authenticateJWT, userController.getUserByIdController);
@@ -46,8 +46,23 @@ router.get(
 router.put(
   "/edit/:id/password",
   authenticateJWT,
+  requireSelfOnly((req) => req.params.id),
   validateBody(ChangePasswordSchema),
   userController.changeUserPasswordController
+);
+
+router.patch(
+  "/:id/status",
+  authenticateJWT,
+  requireAdmin,
+  userController.toggleUserStatus
+);
+
+router.get(
+  "/admin/all",
+  authenticateJWT,
+  requireAdmin,
+  userController.getAllUsersAdmin
 );
 
 export default router;

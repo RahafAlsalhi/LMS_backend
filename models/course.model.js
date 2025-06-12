@@ -107,3 +107,89 @@ export async function searchCourses(keyword) {
     throw err;
   }
 }
+
+export async function getPendingCourses() {
+  try {
+    const result = await query(
+      `SELECT 
+        c.*, 
+        u.name as instructor_name, 
+        cat.name as category_name
+      FROM courses c
+      JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      WHERE c.is_approved = FALSE
+      ORDER BY c.created_at DESC`
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Approve course
+export async function approveCourse(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Course Id");
+  }
+  try {
+    const result = await query(
+      `UPDATE courses 
+       SET is_approved = TRUE, 
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 
+       RETURNING *`,
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Reject course
+export async function rejectCourse(id) {
+  if (!Number.isInteger(id)) {
+    throw new Error("Invalid Course Id");
+  }
+  try {
+    const result = await query(
+      `UPDATE courses 
+       SET is_approved = FALSE,
+           is_published = FALSE,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 
+       RETURNING *`,
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Get all courses with additional info for admin
+export async function getAllCoursesAdmin() {
+  try {
+    const result = await query(
+      `SELECT 
+        c.*,
+        u.name as instructor_name,
+        cat.name as category_name,
+        COUNT(DISTINCT e.user_id) as enrollment_count
+      FROM courses c
+      JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN enrollments e ON c.id = e.course_id
+      GROUP BY c.id, u.name, cat.name
+      ORDER BY c.created_at DESC`
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
