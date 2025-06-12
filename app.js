@@ -19,6 +19,7 @@ import moduleRouter from "./routes/module.route.js";
 import quizRouter from "./routes/quiz.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
 import submissionRouter from "./routes/submission.route.js";
+import reportRoutes from "./routes/reports.route.js";
 
 const app = express();
 
@@ -106,9 +107,9 @@ const authLimiter = rateLimit({
 // Apply rate limiting only in production
 if (!isDevelopment) {
   app.use(generalLimiter);
-  console.log("🔒 Rate limiting enabled for production");
+  console.log(" Rate limiting enabled for production");
 } else {
-  console.log("🔓 Rate limiting disabled for development");
+  console.log(" Rate limiting disabled for development");
 }
 
 // FIXED: Enhanced session configuration with better localhost settings
@@ -136,9 +137,6 @@ app.use(passport.session());
 // 4. Add debugging middleware for development
 if (isDevelopment) {
   app.use((req, res, next) => {
-    console.log(`🌐 ${req.method} ${req.path}`);
-    console.log("🍪 Cookies received:", req.cookies);
-    console.log("📧 Session ID:", req.sessionID);
     next();
   });
 }
@@ -159,7 +157,7 @@ if (!isDevelopment) {
 } else {
   app.use("/api/auth", authRouter); // No rate limiting in development
 }
-app.use("/api/user", userRouter);
+app.use("/api/users", userRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/course", courseRouter);
 app.use("/api/enrollments", enrollmentRouter);
@@ -168,7 +166,7 @@ app.use("/api/modules", moduleRouter);
 app.use("/api/quizzes", quizRouter);
 app.use("/api/assignments", assignmentRouter);
 app.use("/api/submissions", submissionRouter);
-
+app.use("/api/reports", reportRoutes);
 // 7. API documentation endpoint (optional)
 app.get("/api", (req, res) => {
   res.json({
@@ -178,7 +176,7 @@ app.get("/api", (req, res) => {
     rateLimitingActive: !isDevelopment,
     endpoints: {
       auth: "/api/auth",
-      users: "/api/user",
+      users: "/api/users",
       courses: "/api/course",
       categories: "/api/category",
       enrollments: "/api/enrollments",
@@ -187,6 +185,7 @@ app.get("/api", (req, res) => {
       quizzes: "/api/quizzes",
       assignments: "/api/assignments",
       submissions: "/api/submissions",
+      reports: "/api/reports",
     },
   });
 });

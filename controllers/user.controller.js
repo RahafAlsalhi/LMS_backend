@@ -305,3 +305,48 @@ export async function getUserByGoogleIdController(req, res) {
       .json(createResponse(false, "Server error", null, err.message));
   }
 }
+
+// Toggle user status
+export async function toggleUserStatus(req, res) {
+  const id = Number(req.params.id);
+  const { is_active } = req.body;
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json(createResponse(false, "Invalid user ID"));
+  }
+
+  if (typeof is_active !== "boolean") {
+    return res
+      .status(400)
+      .json(createResponse(false, "is_active must be a boolean"));
+  }
+
+  try {
+    const user = await UserModel.toggleUserStatus(id, is_active);
+    if (user) {
+      return res
+        .status(200)
+        .json(createResponse(true, "User status updated successfully", user));
+    } else {
+      return res.status(404).json(createResponse(false, "User not found"));
+    }
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}
+
+// Get all users for admin
+export async function getAllUsersAdmin(req, res) {
+  try {
+    const users = await UserModel.getAllUsersAdmin();
+    return res
+      .status(200)
+      .json(createResponse(true, "Users fetched successfully", users));
+  } catch (err) {
+    return res
+      .status(500)
+      .json(createResponse(false, "Server error", null, err.message));
+  }
+}

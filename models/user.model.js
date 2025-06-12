@@ -172,3 +172,51 @@ export async function getUserbyGoogleId(id) {
     throw err;
   }
 }
+
+export async function toggleUserStatus(id, isActive) {
+  try {
+    if (!Number.isInteger(id)) {
+      throw new Error("Invalid User id");
+    }
+    const result = await query(
+      `UPDATE users 
+       SET is_active = $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 
+       RETURNING id, email, name, role, is_active`,
+      [isActive, id]
+    );
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Get all users with additional info for admin
+export async function getAllUsersAdmin() {
+  try {
+    const result = await query(
+      `SELECT 
+        u.id,
+        u.email,
+        u.name,
+        u.role,
+        u.is_active,
+        u.avatar_url,
+        u.created_at,
+        u.oauth_provider,
+        COUNT(DISTINCT e.course_id) as enrolled_courses,
+        COUNT(DISTINCT c.id) as created_courses
+      FROM users u
+      LEFT JOIN enrollments e ON u.id = e.user_id
+      LEFT JOIN courses c ON u.id = c.instructor_id AND u.role = 'instructor'
+      GROUP BY u.id
+      ORDER BY u.created_at DESC`
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
