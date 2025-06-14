@@ -1,4 +1,3 @@
-// middleware/validateQuery.js - Query Parameter Validation
 import { createResponse } from "../utils/helper.js";
 
 // Validate query parameters

@@ -18,7 +18,7 @@ export async function createUser(userInfo) {
         userInfo.email,
         hashedPassword,
         userInfo.role || "student",
-        userInfo.avatar || null,
+        userInfo.avatar_url || null,
         userInfo.oauth_provider || null,
         userInfo.oauth_id || null,
       ]
@@ -93,11 +93,11 @@ export async function deleteUser(id) {
   }
 }
 
-// 4- get all users (for admin only)
+// 4- get all users (for admin only) - FIXED: Added missing id field
 export async function getAllUsers() {
   try {
     const allUsers = await query(
-      "SELECT  email, name, role, is_active, avatar_url FROM users"
+      "SELECT id, email, name, role, is_active, avatar_url, created_at FROM users ORDER BY created_at DESC"
     );
     return allUsers.rows;
   } catch (err) {
@@ -111,7 +111,7 @@ export async function getUserById(id) {
   try {
     if (Number.isInteger(id)) {
       const result = await query(
-        "SELECT id, email, name, role, is_active, avatar_url, password_hash FROM users WHERE id = $1",
+        "SELECT id, email, name, role, is_active, avatar_url, password_hash, created_at FROM users WHERE id = $1",
         [id]
       );
       if (!result.rows[0]) {
@@ -131,7 +131,7 @@ export async function getUserById(id) {
 export async function getUserByEmail(email) {
   try {
     const result = await query(
-      "SELECT id, email, name, role, is_active, avatar_url, password_hash FROM users WHERE email = $1",
+      "SELECT id, email, name, role, is_active, avatar_url, password_hash, created_at FROM users WHERE email = $1",
       [email]
     );
     return result.rows[0] || null;
@@ -173,6 +173,7 @@ export async function getUserbyGoogleId(id) {
   }
 }
 
+// FIXED: Toggle user status function
 export async function toggleUserStatus(id, isActive) {
   try {
     if (!Number.isInteger(id)) {
@@ -183,7 +184,7 @@ export async function toggleUserStatus(id, isActive) {
        SET is_active = $1,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $2 
-       RETURNING id, email, name, role, is_active`,
+       RETURNING id, email, name, role, is_active, avatar_url, created_at`,
       [isActive, id]
     );
     return result.rows[0] || null;
