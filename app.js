@@ -53,15 +53,20 @@ app.use(
   })
 );
 
-// FIXED: Simplified CORS configuration for localhost development
+// In your app.js, update CORS to be more dynamic:
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "http://localhost:5173",
+      "http://localhost:5174",
       "http://127.0.0.1:3000",
-      process.env.CLIENT_URL || "http://localhost:3000",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174",
+      process.env.CLIENT_URL || "http://localhost:5174", // Updated default
+      process.env.CORS_ORIGIN || "http://localhost:5174", // Use CORS_ORIGIN too
     ],
-    credentials: true, // CRITICAL: Allow cookies
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",

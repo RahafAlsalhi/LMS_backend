@@ -1,5 +1,8 @@
 import express from "express";
-import { CourseSchema } from "../validation/course.Schema.js";
+import {
+  CourseSchema,
+  CreateCourseSchema,
+} from "../validation/course.Schema.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { validateQuery } from "../middleware/validateQuery.js";
 import { authenticateJWT } from "../middleware/auth.js";
@@ -9,17 +12,17 @@ import {
   requireAdmin,
 } from "../middleware/authorize.js";
 import * as courseController from "../controllers/course.controller.js";
+
 const router = express.Router();
-// Create a new course (instructor or admin only)
+
 router.post(
   "/create",
   authenticateJWT,
   requireInstructorOrAdmin,
-  validateBody(CourseSchema),
+  validateBody(CreateCourseSchema),
   courseController.createCourse
 );
 
-// Update a course (instructor or admin only)
 router.put(
   "/edit/:id",
   authenticateJWT,
@@ -28,7 +31,6 @@ router.put(
   courseController.updateCourse
 );
 
-// Delete a course (instructor or admin only)
 router.delete(
   "/delete/:id",
   authenticateJWT,
@@ -36,20 +38,16 @@ router.delete(
   courseController.deleteCourse
 );
 
-// Get all courses (public)
 router.get("/get", courseController.getAllCourses);
 
-// Search courses (public)
 router.get(
   "/search",
   validateQuery(CourseSearchSchema),
   courseController.searchCourses
 );
 
-// Get course by ID (public)
 router.get("/get/:id", courseController.getCourseById);
 
-// Admin routes
 router.get(
   "/pending",
   authenticateJWT,

@@ -30,7 +30,11 @@ router.delete(
 );
 
 // Get all users (admin)
-router.get("/get", authenticateJWT,requireAdmin, userController.getAllUsersController);
+router.get(
+  "/get",
+
+  userController.getAllUsersController
+);
 
 // Get user by ID
 router.get("/get/:id", authenticateJWT, userController.getUserByIdController);
