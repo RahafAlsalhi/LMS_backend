@@ -7,11 +7,13 @@ import {
   getUserByEmail,
   changeUserPassword,
   getUserbyGoogleId,
+  toggleUserStatus as toggleUserStatusModel,
+  getAllUsersAdmin as getAllUsersAdminModel,
 } from "../models/user.model.js";
 import { createResponse } from "../utils/helper.js";
 import { verifyPassword } from "../utils/auth.js";
 
-// Create user
+// Create user - FIXED: Better validation and response
 export async function createUserController(req, res) {
   try {
     const userInfo = { ...req.body };
@@ -27,7 +29,7 @@ export async function createUserController(req, res) {
     // Google Auth registration
     if (userInfo.oauth_provider === "google" && userInfo.oauth_id) {
       userInfo.password = null; // Ignore password for Google users
-      userInfo.avatar = userInfo.avatar || null;
+      userInfo.avatar_url = userInfo.avatar_url || null;
 
       // Validate required Google fields
       if (!userInfo.email || !userInfo.name) {
@@ -44,7 +46,7 @@ export async function createUserController(req, res) {
       // Email/password registration
       userInfo.oauth_provider = null;
       userInfo.oauth_id = null;
-      userInfo.avatar = userInfo.avatar || null;
+      userInfo.avatar_url = userInfo.avatar_url || null;
 
       // Validate required fields
       if (!userInfo.email || !userInfo.password || !userInfo.name) {
@@ -54,6 +56,20 @@ export async function createUserController(req, res) {
             createResponse(false, "Name, email, and password are required")
           );
       }
+
+      // Validate password length
+      if (userInfo.password.length < 6) {
+        return res
+          .status(400)
+          .json(
+            createResponse(false, "Password must be at least 6 characters long")
+          );
+      }
+    }
+
+    // Set default role if not provided
+    if (!userInfo.role) {
+      userInfo.role = "student";
     }
 
     // Create user
@@ -70,11 +86,11 @@ export async function createUserController(req, res) {
     console.error("Create user error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
-// Update user
+// Update user - FIXED: Only allow name, email, role, avatar_url updates
 export async function updateUserController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
@@ -88,9 +104,32 @@ export async function updateUserController(req, res) {
       return res.status(404).json(createResponse(false, "User not found"));
     }
 
+    // Only allow specific fields to be updated
+    const allowedFields = ["name", "email", "role", "avatar_url"];
+    const updateData = {};
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
+    // Validate required fields
+    if (updateData.name === "") {
+      return res
+        .status(400)
+        .json(createResponse(false, "Name cannot be empty"));
+    }
+
+    if (updateData.email === "") {
+      return res
+        .status(400)
+        .json(createResponse(false, "Email cannot be empty"));
+    }
+
     // Check if email is being changed and already exists
-    if (req.body.email && req.body.email !== existingUser.email) {
-      const emailExists = await getUserByEmail(req.body.email);
+    if (updateData.email && updateData.email !== existingUser.email) {
+      const emailExists = await getUserByEmail(updateData.email);
       if (emailExists) {
         return res
           .status(400)
@@ -98,7 +137,7 @@ export async function updateUserController(req, res) {
       }
     }
 
-    const user = await updateUser({ ...req.body, id });
+    const user = await updateUser({ ...updateData, id });
     if (user) {
       // Remove password_hash from response
       const { password_hash, ...sanitizedUser } = user;
@@ -111,11 +150,11 @@ export async function updateUserController(req, res) {
     console.error("Update user error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
-// Delete user
+// Delete user - FIXED: Better error handling
 export async function deleteUserController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
@@ -129,6 +168,13 @@ export async function deleteUserController(req, res) {
       return res.status(404).json(createResponse(false, "User not found"));
     }
 
+    // Prevent deleting admin users (optional security measure)
+    if (existingUser.role === "admin") {
+      return res
+        .status(403)
+        .json(createResponse(false, "Cannot delete admin users"));
+    }
+
     const deleted = await deleteUser(id);
     if (deleted) {
       return res
@@ -140,11 +186,11 @@ export async function deleteUserController(req, res) {
     console.error("Delete user error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
-// Get all users (admin)
+// Get all users (admin) - FIXED: Better response structure
 export async function getAllUsersController(req, res) {
   try {
     const users = await getAllUsers();
@@ -155,7 +201,7 @@ export async function getAllUsersController(req, res) {
     console.error("Get all users error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
@@ -180,7 +226,7 @@ export async function getUserByIdController(req, res) {
     console.error("Get user by ID error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
@@ -207,7 +253,7 @@ export async function getUserByEmailController(req, res) {
     console.error("Get user by email error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
@@ -275,7 +321,7 @@ export async function changeUserPasswordController(req, res) {
     console.error("Change password error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
@@ -302,11 +348,11 @@ export async function getUserByGoogleIdController(req, res) {
     console.error("Get user by Google ID error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
-// Toggle user status
+// Toggle user status - FIXED: Function name and import
 export async function toggleUserStatus(req, res) {
   const id = Number(req.params.id);
   const { is_active } = req.body;
@@ -322,7 +368,7 @@ export async function toggleUserStatus(req, res) {
   }
 
   try {
-    const user = await UserModel.toggleUserStatus(id, is_active);
+    const user = await toggleUserStatusModel(id, is_active);
     if (user) {
       return res
         .status(200)
@@ -331,22 +377,24 @@ export async function toggleUserStatus(req, res) {
       return res.status(404).json(createResponse(false, "User not found"));
     }
   } catch (err) {
+    console.error("Toggle user status error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }
 
-// Get all users for admin
+// Get all users for admin - FIXED: Function name and import
 export async function getAllUsersAdmin(req, res) {
   try {
-    const users = await UserModel.getAllUsersAdmin();
+    const users = await getAllUsersAdminModel();
     return res
       .status(200)
       .json(createResponse(true, "Users fetched successfully", users));
   } catch (err) {
+    console.error("Get all users admin error:", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, err.message));
+      .json(createResponse(false, err.message || "Server error"));
   }
 }

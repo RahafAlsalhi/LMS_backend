@@ -96,15 +96,11 @@ export async function deleteCourse(id) {
   }
 }
 
+//get all courses
 export async function getAllCourses() {
   try {
     const allCourses = await query(
-      `SELECT c.*, u.name as instructor_name, cat.name as category_name
-       FROM courses c
-       LEFT JOIN users u ON c.instructor_id = u.id
-       LEFT JOIN categories cat ON c.category_id = cat.id
-       WHERE c.is_published = TRUE
-       ORDER BY c.created_at DESC`
+      "SELECT * FROM courses  ORDER BY created_at DESC"
     );
     return allCourses.rows;
   } catch (err) {
@@ -118,14 +114,7 @@ export async function getCourseById(id) {
     throw new Error("Invalid Course Id");
   }
   try {
-    const course = await query(
-      `SELECT c.*, u.name as instructor_name, cat.name as category_name
-       FROM courses c
-       LEFT JOIN users u ON c.instructor_id = u.id
-       LEFT JOIN categories cat ON c.category_id = cat.id
-       WHERE c.id = $1`,
-      [id]
-    );
+    const course = await query("SELECT * FROM courses where id = $1", [id]);
     return course.rows[0];
   } catch (err) {
     console.error(err);
@@ -136,13 +125,9 @@ export async function getCourseById(id) {
 export async function searchCourses(keyword) {
   try {
     const result = await query(
-      `SELECT c.*, u.name as instructor_name, cat.name as category_name
-       FROM courses c
-       LEFT JOIN users u ON c.instructor_id = u.id
-       LEFT JOIN categories cat ON c.category_id = cat.id
-       WHERE LOWER(c.title) LIKE $1 
-       AND c.is_published = TRUE
-       ORDER BY c.created_at DESC`,
+      `
+    SELECT * FROM courses where lower(title) LIKE $1
+  `,
       [`%${keyword.toLowerCase()}%`]
     );
     return result.rows;
@@ -152,6 +137,7 @@ export async function searchCourses(keyword) {
   }
 }
 
+// FIXED: Get pending courses with proper status mapping
 export async function getPendingCourses() {
   try {
     console.log("🔍 Fetching pending courses...");
@@ -160,11 +146,12 @@ export async function getPendingCourses() {
       `SELECT 
         c.*, 
         u.name as instructor_name, 
-        cat.name as category_name
+        cat.name as category,
+        'pending' as approval_status
       FROM courses c
       JOIN users u ON c.instructor_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id
-      WHERE c.is_approved = FALSE
+      WHERE c.is_approved IS NULL OR c.is_approved = FALSE AND c.is_published IS NOT FALSE
       ORDER BY c.created_at DESC`
     );
 
@@ -201,7 +188,6 @@ export async function approveCourse(id) {
     const result = await query(
       `UPDATE courses 
        SET is_approved = TRUE, 
-           is_published = TRUE,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 
        RETURNING *`,
@@ -259,8 +245,13 @@ export async function getAllCoursesAdmin() {
       `SELECT 
         c.*,
         u.name as instructor_name,
-        cat.name as category_name,
-        COUNT(DISTINCT e.user_id) as enrollment_count
+        cat.name as category,
+        COUNT(DISTINCT e.user_id) as enrollment_count,
+        CASE 
+          WHEN c.is_approved = TRUE THEN 'approved'
+          WHEN c.is_approved = FALSE AND c.is_published = FALSE THEN 'rejected'
+          ELSE 'pending'
+        END as approval_status
       FROM courses c
       JOIN users u ON c.instructor_id = u.id
       LEFT JOIN categories cat ON c.category_id = cat.id

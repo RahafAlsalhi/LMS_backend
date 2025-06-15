@@ -2,23 +2,27 @@ import express from "express";
 import * as userController from "../controllers/user.controller.js";
 import { authenticateJWT } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validateBody.js";
-import { UserSchema } from "../validation/user.Schema.js";
+import { UserSchema, UpdateUserSchema } from "../validation/user.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 import { requireSelfOnly, requireAdmin } from "../middleware/authorize.js";
+
 const router = express.Router();
 
-// Create user (registration)
+// Create user (registration) - Use UserSchema for validation
 router.post(
   "/create",
+  authenticateJWT,
+  requireAdmin,
   validateBody(UserSchema),
   userController.createUserController
 );
 
-// Update user
+// Update user - Use UpdateUserSchema (no password field)
 router.put(
   "/edit/:id",
   authenticateJWT,
-  validateBody(UserSchema),
+  requireAdmin,
+  validateBody(UpdateUserSchema),
   userController.updateUserController
 );
 
@@ -26,13 +30,15 @@ router.put(
 router.delete(
   "/delete/:id",
   authenticateJWT,
+  requireAdmin,
   userController.deleteUserController
 );
 
 // Get all users (admin)
 router.get(
   "/get",
-
+  authenticateJWT,
+  requireAdmin,
   userController.getAllUsersController
 );
 
@@ -46,7 +52,7 @@ router.get(
   userController.getUserByEmailController
 );
 
-// Change user password
+// Change user password (separate endpoint)
 router.put(
   "/edit/:id/password",
   authenticateJWT,
@@ -55,6 +61,7 @@ router.put(
   userController.changeUserPasswordController
 );
 
+// Toggle user status
 router.patch(
   "/:id/status",
   authenticateJWT,
@@ -62,6 +69,7 @@ router.patch(
   userController.toggleUserStatus
 );
 
+// Get all users with admin details
 router.get(
   "/admin/all",
   authenticateJWT,
